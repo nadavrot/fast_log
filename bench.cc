@@ -286,12 +286,13 @@ double __attribute__((noinline)) fastlog2(double x) {
 
   // Use a 4-part polynom to approximate log2(x);
   double c[] = {0.15365779, -1.02798723, 3.0079672, -2.1322138};
-  double x2 = x * x;
-  double x3 = x2 * x;
-
   double log2 = 0.6931471805599453;
+
+  // Use Horner's method to evaluate the polynomial.
+  double val = c[3] + x * (c[2] + x * (c[1] + x * (c[0])));
+
   // Compute log2(x), and convert the result to base-e.
-  return log2 * (c[0] * x3 + c[1] * x2 + c[2] * x + c[3] - shift);
+  return log2 * (val - shift);
 }
 
 // Find the max error.
@@ -344,7 +345,7 @@ void validate_monotonic(double max_range = 20.0, int iterations = 10000) {
 }
 
 void bench(const std::string &name, double (*handle)(double), double range = 8.,
-           unsigned iterations = 1000000) {
+           int iterations = 1000000) {
   auto t1 = high_resolution_clock::now();
 
   double sum = 0;
