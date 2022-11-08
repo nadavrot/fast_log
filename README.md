@@ -120,10 +120,14 @@ lookup table that does the transformation above.
 
 ### C++ implementation
 
-The C++ implementation is straightforward, and is available in this repo. Make sure to compile the code with:
+The C++ implementation uses Horner's method for fast evaluation of small polynomials. Notice that we can rewrite our polynomial this way: $a x^4 + b x^3 + c x^2 + dx + e = e + x(d + x(c + x(b + ax))) $. Horner's representation requires fewer multiplications, and each pair of addition and multiplication can be converted by the compiler to a fused multiply-add instruction (fma).
+
+The rest of the code should be straightforward, and is available in this repo. 
+
+Make sure to compile the code with:
 
 ```
-  clang++ bench.cc -mavx2  -ffast-math -O3 -fno-builtin ; ./a.out
+  clang++ bench.cc -mavx2 -mfma -O3 -fno-builtin ; ./a.out
 ```
 
 Benchmark results:
