@@ -73,6 +73,10 @@ and you can find the solution in a few lines of python.
   a, b, c, d = params[0], params[1], params[2], params[3]
 ```
 
+An alternative solution would be to generate minimax polynomial with Sollya. Minimax polynomials minimize maximum error and generate better results. This is a short Sollya script that reduces the error compared to the curve fitting method:
+
+``` display = decimal; Q = fpminimax(log(x), 4, [|D...|], [0.9, 2]); Q; ```
+
 The next step was to check the error. This is straight forward. Just subtract
 the real function from the approximation function. As you can see the maximum
 error is around 0.0008, for all values in the ranges $[1..2]$.
