@@ -1,0 +1,2 @@
+display = decimal; Q = fpminimax(log(x)/log(2), 3, [|D...|], [0.40, 1.10]); Q;
+
