@@ -211,9 +211,9 @@ Benchmark results:
 
 ```
 EXP:
-name = nop,      sum =            , time = 166ms
-name = fast_exp, sum = 1.97316e+11, time = 219ms
-name = libm_exp, sum = 1.97299e+11, time = 392ms
+name = nop,      sum =            , time = 163ms
+name = fast_exp, sum = 1.10837e+11, time = 166ms
+name = libm_exp, sum = 1.10829e+11, time = 383ms
 
 LOG:
 name = nop     , sum =            , time = 165ms
