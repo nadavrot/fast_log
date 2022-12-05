@@ -9,7 +9,7 @@
 
 double __attribute__((noinline)) nop(double x) { return x + 1; }
 
-double __attribute__((noinline)) fast_exp_impl(double x) {
+double __attribute__((noinline)) fast_exp(double x) {
   double integer = trunc(x);
   // X is now the fractional part of the number.
   x = x - integer;
@@ -19,20 +19,12 @@ double __attribute__((noinline)) fast_exp_impl(double x) {
   
   // Use Horner's method to evaluate the polynomial.
   double val = c[3] + x * (c[2] + x * (c[1] + x * (c[0])));
-  return val * EXP_TABLE[(unsigned)integer];
+  return val * EXP_TABLE[(unsigned)integer + 710];
 }
 
-double __attribute__((noinline)) fast_exp(double x) {
-  // Handle negative values.
-  bool flip = false;
-  if (x < 0) {
-    return 1 / fast_exp_impl(-x);
-  }
-  return fast_exp_impl(x);
-}
 
 int main(int argc, char **argv) {
-  std::vector<double> iv = generate_test_vector(-1, 10, 10000);
+  std::vector<double> iv = generate_test_vector(-10, 10, 10000);
   bench("nop", nop, iv);
   bench("trunc", trunc, iv);
   bench("fast_exp", fast_exp, iv);

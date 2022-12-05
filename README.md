@@ -106,13 +106,14 @@ polynomial, and we can evaluate the integral part using a small lookup table.
 The highest number that we can compute without overflowing double-precision floats
 is 710, so this is the size of our lookup table.
 
-The second problem that we need to solve is the handling of negative numbers.
-Luckily we can rely on the identity $e^{-x} = 1/{e^x}$.
+One way to handle negative numbers is to rely on the identity $e^{-x} = 1/{e^x}$,
+but branch mispredictions make this inefficient. So, instead we'll just extend the
+lookup table to the range $[-710, 710]$.
 
 And that's it. This is our implementation:
 
 ```
-  double expImpl(double x) {
+  double expExp(double x) {
     double integer = trunc(x);
     // X is now the fractional part of the number.
     x = x - integer;
@@ -122,14 +123,7 @@ And that's it. This is our implementation:
 
     // Use Horner's method to evaluate the polynomial.
     double val = c[3] + x * (c[2] + x * (c[1] + x * (c[0])));
-    return val * EXP_TABLE[(unsigned)integer];
-  }
-
-  double fastExp(double x) {
-    if (x < 0) {
-      return 1 / expImpl(-x);
-    }
-    return expImpl(x);
+    return val * EXP_TABLE[(unsigned)integer + table_zero_idx];
   }
 ```
 
@@ -217,12 +211,12 @@ Benchmark results:
 
 ```
 EXP:
-name = nop,       sum =            , time = 166ms
+name = nop,      sum =            , time = 166ms
 name = fast_exp, sum = 1.97316e+11, time = 219ms
 name = libm_exp, sum = 1.97299e+11, time = 392ms
 
 LOG:
-name = nop      , sum =            , time = 165ms
+name = nop     , sum =            , time = 165ms
 name = fast_log, sum = 1.46016e+08, time = 167ms
 name = libm_log, sum = 1.46044e+08, time = 418ms
 
