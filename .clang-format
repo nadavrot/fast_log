@@ -1,0 +1,4 @@
+BasedOnStyle: LLVM
+IndentWidth: 4
+Cpp11BracedListStyle: false
+ColumnLimit: 100
