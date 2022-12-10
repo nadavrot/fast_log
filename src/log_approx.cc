@@ -11,18 +11,10 @@
 
 double __attribute__((noinline)) nop(double x) { return 0.00001; }
 
-template <class To, class From> To bit_cast(const From &src) noexcept {
-    static_assert(sizeof(To) == sizeof(From), "Size mismatch");
-    To dst;
-    std::memcpy(&dst, &src, sizeof(To));
-    return dst;
-}
-
 /// @returns the exponent and a normalized mantissa with the relationship:
 /// [a * 2^b] = x
 std::pair<double, int> my_frexp(double x) {
     uint64_t bits = bit_cast<uint64_t, double>(x);
-    uint64_t bits2 = bits;
     if (bits == 0) {
         return { 0., 0 };
     }

@@ -1,11 +1,14 @@
 
-all: exp_approx log_approx
+all: exp_approx log_approx log_accurate
 
 exp_approx: exp_approx.cc util.h
-	g++ exp_approx.cc -O3 -march=native -mfma -o exp_approx
+	g++ exp_approx.cc -O3 -g -Wall -march=native -mfma -o exp_approx
 
 log_approx: log_approx.cc util.h
-	g++ log_approx.cc -O3 -march=native -mfma -o log_approx
+	g++ log_approx.cc -O3 -g -Wall -march=native -mfma -o log_approx
+
+log_accurate: log_accurate.cc util.h
+	g++ log_accurate.cc -O3 -g -Wall -march=native -mfma -o log_accurate
 
 clean:
-	rm -f ./exp_approx ./log_approx
+	rm -f ./exp_approx ./log_approx ./log_accurate
