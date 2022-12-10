@@ -2,6 +2,7 @@
 #include <iostream>
 #include <random>
 #include <string>
+#include <thread>
 #include <vector>
 
 using std::chrono::duration;
@@ -30,34 +31,83 @@ template <class UnsignedTy, class FloatTy> UnsignedTy ulp_difference(FloatTy n1,
     return (b1 > b2) ? (b1 - b2) : (b2 - b1);
 }
 
+/// A generic histogram class.
+template <unsigned NumBins> struct Histogram {
+    uint64_t payload_[NumBins];
+    Histogram() {
+        for (unsigned i = 0; i < NumBins; i++) {
+            payload_[i] = 0;
+        }
+    }
+    // Add the counts
+    void join(const Histogram &other) {
+        for (unsigned i = 0; i < NumBins; i++) {
+            payload_[i] += other.payload_[i];
+        }
+    }
+    void add(unsigned idx, uint64_t val = 1) {
+        idx = std::min<unsigned>(NumBins - 1, idx);
+        payload_[idx] += val;
+    }
+
+    void dump(const char *message) {
+        printf("%s", message);
+        for (unsigned i = 0; i < NumBins; i++) {
+            double percent = 100 * double(payload_[i]) / double(1LL << 32);
+            if (i < (NumBins - 1)) {
+                printf("%02d) %02.3f%% - %08lu\n", i, percent, payload_[i]);
+            } else {
+                printf("Other: %02.3f%% - %08lu\n", percent, payload_[i]);
+            }
+        }
+    };
+};
+
+/// A helper class that performs multi-threaded computation of ULP differences
+/// between two implementations.
+template <class FloatTy = float, class UnsignedTy = unsigned, unsigned NumThreads = 8,
+          unsigned NumBins = 32>
+class Verifier {
+    std::thread threads_[NumThreads];
+    Histogram<NumBins> hist_[NumThreads];
+
+  public:
+    void print_ulp_deltas(FloatTy (*handle1)(FloatTy), FloatTy (*handle2)(FloatTy)) {
+        auto scan = [&handle1, &handle2](uint64_t start, uint64_t end, Histogram<NumBins> &hist) {
+            // For each value in the 32bit range.
+            for (uint64_t i = start; i < end; i++) {
+                FloatTy val = bit_cast<FloatTy, UnsignedTy>((unsigned)i);
+                FloatTy r1 = handle1(val);
+                FloatTy r2 = handle2(val);
+                // Record the ULP delta.
+                unsigned ud = ulp_difference<UnsignedTy, FloatTy>(r1, r2);
+                hist.add(ud);
+            }
+        };
+
+        uint64_t chunk_size = (1L << 32) / NumThreads;
+        for (unsigned i = 0; i < NumThreads; i++) {
+            uint64_t start = i * chunk_size;
+            uint64_t end = (i + 1) * chunk_size;
+            threads_[i] = std::thread(scan, start, end, std::ref(hist_[i]));
+        }
+        for (unsigned i = 0; i < NumThreads; i++) {
+            threads_[i].join();
+        }
+        // Merge the histograms after the workers finished.
+        for (unsigned i = 1; i < NumThreads; i++) {
+            hist_[0].join(hist_[i]);
+        }
+        // Report the histogram.
+        hist_[0].dump("\nULP delta:\n");
+    }
+};
+
 // Compare two functions and count the number of values with different ULPs.
 // See https://en.wikipedia.org/wiki/IEEE_754#Basic_and_interchange_formats
 void print_ulp_deltas(float (*handle1)(float), float (*handle2)(float)) {
-    // Count the numbers of the first 31 ULP deltas.
-    uint64_t ULP_delta[32] = { 0 };
-
-    // For each value in the 32bit range.
-    for (uint64_t i = 0; i < 1L << 32; i++) {
-        float val = bit_cast<float, unsigned>((unsigned)i);
-        float r1 = handle1(val);
-        float r2 = handle2(val);
-
-        // Record the ULP delta.
-        unsigned ud = ulp_difference<unsigned, float>(r1, r2);
-        ud = std::min<unsigned>(31, ud);
-        ULP_delta[ud]++;
-    }
-
-    // Print the ULP distribution:
-    printf("ULP distribution:\n");
-    for (int i = 0; i < 32; i++) {
-        double percent = 100 * double(ULP_delta[i]) / double(1LL << 32);
-        if (i < 31) {
-            printf("%02d) %02.3f%% - %08lu\n", i, percent, ULP_delta[i]);
-        } else {
-            printf("Other: %02.3f%% - %08lu\n", percent, ULP_delta[i]);
-        }
-    }
+    Verifier<float, unsigned, 64, 16> verifier;
+    verifier.print_ulp_deltas(handle1, handle2);
 }
 
 // Prints a lookup table for [0x3fxx0000], that computes f(x)=log(1/x).
