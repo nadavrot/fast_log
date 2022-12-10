@@ -26,8 +26,17 @@ std::pair<float, int> reduce_fp32(float x) {
     bits >>= 23;
 
     // Extract the 8-bit exponent field, and add the bias.
-    int exponent = int(bits & 0xff) - 127;
+    int exponent = int(bits & 0xff);
+    int normalized_exponent = exponent - 127;
     bits >>= 8;
+
+    // Handle denormals.
+    if (exponent == 0) {
+        // Scale the number to a manageable scale.
+        auto r = reduce_fp32(x *0x1p32);
+        r.second -= 32;
+        return r;
+    }
 
     // Extract the sign bit.
     uint64_t sign = bits;
@@ -41,7 +50,7 @@ std::pair<float, int> reduce_fp32(float x) {
     res |= mantissa;
 
     float frac = bit_cast<float, uint32_t>(res);
-    return { frac, exponent };
+    return { frac, normalized_exponent };
 }
 
 // Compute the reciprocal of \p y in the range [sqrt(2)/2 .. sqrt(2)].
