@@ -246,10 +246,10 @@ float __attribute__((noinline)) my_log(float x) {
     // Handle the special values:
     if (x == 0) {
         return bit_cast<float, unsigned>(0xff800000); // -Inf
-    } else if (is_nan(x)) {
-        return x;
     } else if (x < 0) {
         return bit_cast<float, unsigned>(0xffc00000); // -Nan.
+    } else if (is_nan(x)) {
+        return x;
     }
 
     /// Extract the fraction, and the power-of-two exponent, such that:
@@ -264,22 +264,21 @@ float __attribute__((noinline)) my_log(float x) {
         m = m / 2;
     }
 
-    float y = m;
-    // Compute the reciprocal of y using a lookup table.
-    double ri = recip_of_masked(y);
-    double z = y * ri - 1;
-    double log2 = 0.6931471805599453;
+    // Compute the reciprocal of m using a lookup table.
+    double ri = recip_of_masked(m);
+    double z = m * ri - 1;
+    double log2 = bit_cast<double, uint64_t>(0x3fe62e42fefa39ef);
 
     // We use double here because float is not accurate enough for the final
     // reduction. We are missing just a few bits.
 
     // Compute log(1/ri) using a lookup table.
-    double ln_ri = log_recp_of_masked(y);
+    double ln_ri = log_recp_of_masked(m);
     // Approximate log(1+z) using a polynomial:
     double ln_1z = approximate_log_pol_1_to_1001(z);
 
     // Perform the final reduction.
-    return E * log2 + (ln_1z - ln_ri);
+    return (E * log2 + ln_1z) - ln_ri;
 }
 
 // Wrap the standard log(double) and use it as the ground truth.
