@@ -23,7 +23,7 @@ double __attribute__((noinline)) fast_exp(double x) {
 }
 
 int main(int argc, char **argv) {
-    std::vector<double> iv = generate_test_vector(-10, 10, 10000);
+    std::vector<double> iv = generate_test_vector(-10., 10., 10000);
     bench("nop", nop, iv);
     bench("trunc", trunc, iv);
     bench("fast_exp", fast_exp, iv);

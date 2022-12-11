@@ -125,7 +125,7 @@ void check() {
 
 int main(int argc, char **argv) {
     check();
-    std::vector<double> iv = generate_test_vector(0.5, 10, 10000);
+    std::vector<double> iv = generate_test_vector(0.5, 10., 10000);
     validate_error(iv);
     validate_monotonic();
 

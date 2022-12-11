@@ -157,11 +157,12 @@ void print_recp_table_for_3f_values() {
 }
 
 /// @return \p count random uniform numbers in the range \p start to \p end.
-std::vector<double> generate_test_vector(double start, double end, unsigned count) {
+template <class FloatTy>
+std::vector<FloatTy> generate_test_vector(FloatTy start, FloatTy end, unsigned count) {
     std::random_device rd;
     std::mt19937 mt(rd());
-    std::uniform_real_distribution<double> dist(start, end);
-    std::vector<double> res;
+    std::uniform_real_distribution<FloatTy> dist(start, end);
+    std::vector<FloatTy> res;
     for (unsigned i = 0; i < count; i++) {
         res.push_back(dist(mt));
     }
@@ -171,11 +172,12 @@ std::vector<double> generate_test_vector(double start, double end, unsigned coun
 /// @brief Benchmark a program with the name \p name, and function pointer
 /// \p handle. Run \p iterations iterations on inputs from the test vector
 /// \p iv. Prints the result to stdout.
-void bench(const std::string &name, double (*handle)(double), const std::vector<double> &iv,
+template <class FloatTy>
+void bench(const std::string &name, FloatTy (*handle)(FloatTy), const std::vector<FloatTy> &iv,
            int iterations = 10000) {
     auto t1 = high_resolution_clock::now();
 
-    double sum = 0;
+    FloatTy sum = 0;
     for (int iter = 0; iter < iterations; iter++) {
         for (auto elem : iv) {
             sum += handle(elem);
