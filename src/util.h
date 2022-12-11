@@ -111,24 +111,24 @@ void print_ulp_deltas(float (*handle1)(float), float (*handle2)(float)) {
 }
 
 // Prints a lookup table for [0x3fxx0000], that computes f(x)=log(1/x).
-void print_log_table_for_3f_values() {
+void print_log_recp_table_for_3f_values() {
     // Count the numbers of the first 31 ULP deltas.
-    unsigned table[256] = { 0 };
+    uint64_t table[256] = { 0 };
 
     for (unsigned i = 0; i < 256; i++) {
         unsigned valb = (0x3f << 24) | (i << 16);
         float val = bit_cast<float, unsigned>(valb);
-        val = log(1 / val);
-        table[i] = bit_cast<unsigned, float>(val);
+        double val2 = log(1. / (double)val);
+        table[i] = bit_cast<uint64_t, double>(val2);
     }
 
     // Print the ULP distribution:
-    printf("unsigned masked_log_table[256] = {");
+    printf("uint64_t masked_log_recp_table[256] = {");
     for (int i = 0; i < 256; i++) {
         if (i % 8 == 0) {
             printf("\n\t");
         }
-        printf("0x%x, ", table[i]);
+        printf("0x%lx, ", table[i]);
     }
     printf("};\n");
 }
@@ -136,22 +136,22 @@ void print_log_table_for_3f_values() {
 // Prints a lookup table for [0x3fxx0000], that computes f(x)=1/x.
 void print_recp_table_for_3f_values() {
     // Count the numbers of the first 31 ULP deltas.
-    unsigned table[256] = { 0 };
+    uint64_t table[256] = { 0 };
 
     for (unsigned i = 0; i < 256; i++) {
         unsigned valb = (0x3f << 24) | (i << 16);
         float val = bit_cast<float, unsigned>(valb);
-        val = 1 / val;
-        table[i] = bit_cast<unsigned, float>(val);
+        double val2 = (1. / (double)val);
+        table[i] = bit_cast<uint64_t, double>(val2);
     }
 
     // Print the ULP distribution:
-    printf("unsigned masked_log_recp_table[256] = {");
+    printf("uint64_t masked_recp_table[256] = {");
     for (int i = 0; i < 256; i++) {
         if (i % 8 == 0) {
             printf("\n\t");
         }
-        printf("0x%x, ", table[i]);
+        printf("0x%lx, ", table[i]);
     }
     printf("};\n");
 }
