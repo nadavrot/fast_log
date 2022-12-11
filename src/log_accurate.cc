@@ -267,7 +267,7 @@ float __attribute__((noinline)) my_log(float x) {
     float y = m;
     // Compute the reciprocal of y using a lookup table.
     double ri = recip_of_masked(y);
-    float z = y * ri - 1;
+    double z = y * ri - 1;
     double log2 = 0.6931471805599453;
 
     // We use double here because float is not accurate enough for the final
@@ -279,7 +279,7 @@ float __attribute__((noinline)) my_log(float x) {
     double ln_1z = approximate_log_pol_1_to_1001(z);
 
     // Perform the final reduction.
-    return E * log2 + ln_1z - ln_ri;
+    return E * log2 + (ln_1z - ln_ri);
 }
 
 // Wrap the standard log(double) and use it as the ground truth.
@@ -289,7 +289,7 @@ float accurate_log(float x) { return log((double)x); }
 float libc_log(float x) { return logf(x); }
 
 int main(int argc, char **argv) {
-    print_recp_table_for_3f_values();
-    print_log_recp_table_for_3f_values();
+    //print_recp_table_for_3f_values();
+    //print_log_recp_table_for_3f_values();
     print_ulp_deltas(my_log, accurate_log);
 }
