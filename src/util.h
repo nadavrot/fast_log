@@ -10,6 +10,20 @@ using std::chrono::duration_cast;
 using std::chrono::high_resolution_clock;
 using std::chrono::milliseconds;
 
+#define PRINT_DOUBLE(name, x)                                                                      \
+    {                                                                                              \
+        uint64_t ux = bit_cast<uint64_t, double>(x);                                               \
+        printf("%s: (%.9f 0x%lx)\n", #name, x, ux);                                                \
+    }
+#define PRINT_FLOAT(name, x)                                                                       \
+    {                                                                                              \
+        uint32_t ux = bit_cast<uint32_t, float>(x);                                                \
+        printf("%s: (%.9f 0x%lx)\n", #name, x, ux);                                                \
+    }
+
+#define PRINT_INT(name, x)                                                                         \
+    { printf("%s: (0x%lx %ld)\n", #name, x, x); }
+
 template <class To, class From> To bit_cast(const From &src) noexcept {
     static_assert(sizeof(To) == sizeof(From), "Size mismatch");
     To dst;
@@ -112,7 +126,6 @@ void print_ulp_deltas(float (*handle1)(float), float (*handle2)(float)) {
 
 // Prints a lookup table for [0x3fxx0000], that computes f(x)=log(1/x).
 void print_log_recp_table_for_3f_values() {
-    // Count the numbers of the first 31 ULP deltas.
     uint64_t table[256] = { 0 };
 
     for (unsigned i = 0; i < 256; i++) {
@@ -135,7 +148,6 @@ void print_log_recp_table_for_3f_values() {
 
 // Prints a lookup table for [0x3fxx0000], that computes f(x)=1/x.
 void print_recp_table_for_3f_values() {
-    // Count the numbers of the first 31 ULP deltas.
     uint64_t table[256] = { 0 };
 
     for (unsigned i = 0; i < 256; i++) {

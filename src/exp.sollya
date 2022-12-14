@@ -1,1 +1,2 @@
-display = decimal; Q = fpminimax(exp(x), 5, [|D...|], [-0.1, 1.1]); Q;
+display = decimal; Q = fpminimax(exp(x), 6, [|D...|], [-0.000001, 1.001]); Q;
+display = decimal; Q = fpminimax(exp(x), 5, [|D...|], [-0.0039, 0.0039]); Q;
